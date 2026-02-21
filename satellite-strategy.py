@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # CONFIGURATION & STRATEGY PARAMETERS
 # ==============================================================================
 
-CASH_TICKER = "YCAA.XETRA"  
+CASH_TICKER = "VCAA.XETRA"  
 CASH_NAME   = "CASH (Vanguard EUR Cash)"
 CASH_ISIN   = "IE000SOORXS0" # ISIN for the fallback to facilitate broker execution
 TRADE_COST_ESTIMATE = 5.90   # Estimated execution cost per trade in EUR (Flatex)
