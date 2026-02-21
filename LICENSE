@@ -1,6 +1,13 @@
-MIT License
+# Licensing Agreement for Lara’s Compass
 
-Copyright (c) 2026 AndreasW-AT
+This repository utilizes a dual-licensing model to distinguish between the technical implementation (source code) and the investment methodology (strategy & documentation).
+
+---
+
+## 1. Software License (MIT)
+Applicable to: All script files, including 'satellite-strategy.py'.
+
+Copyright (c) 2026 Andreas Willert
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +26,24 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+## 2. Strategy & Documentation License (CC BY-NC-SA 4.0)
+Applicable to: Investment methodology, 'README.md', and conceptual frameworks.
+
+Lara’s Compass – Systematic Market Navigation
+Author: Andreas Willert
+
+This work is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License.
+
+You are free to:
+* Share — copy and redistribute the material in any medium or format.
+* Adapt — remix, transform, and build upon the material.
+
+Under the following terms:
+* Attribution — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+* NonCommercial — You may not use the material for commercial purposes.
+* ShareAlike — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+
+Full license text available at: https://creativecommons.org/licenses/by-nc-sa/4.0/
