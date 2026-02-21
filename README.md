@@ -5,7 +5,7 @@
 ---
 
 **Status:** February 2026  
-***Perspective:** Private Retail Investor (Austria / Flatex)  
+**Perspective:** Private Retail Investor (Austria / Flatex)  
 **Objective:** Long-term capital growth with minimized drawdown exposure.
 
 ---
@@ -63,7 +63,7 @@ The foundation relies on a strict **Core-Satellite Architecture**, functionally 
 
 ## 3. Portfolio Architecture
 
-**Target Allocation:** 80 % Core / 20 % Satellite. 
+**Target Allocation:** 80 % Core / 20 % Satellite.
 
 Capital management and rebalancing are primarily executed via continuous monthly capital inflows. To preserve the mathematical edge of the trend-following component, the portfolio utilizes **Dynamic Trend-Conditioned Bands** rather than static tolerance thresholds:
 
@@ -71,9 +71,9 @@ Capital management and rebalancing are primarily executed via continuous monthly
    
    * *Trigger:* Disproportionate Satellite growth driven by persistent macro trends.
    * *Action:* Assess the technical integrity of the Top 3 Satellite constituents. Are at least 2 constituents maintaining a confirmed uptrend (Price > SMA200)?
-     * **Condition A (Trend Intact + Satellite 25 - 32 %):** Maintain exposure with controlled capital allocation (70 % of new inflows allocate to the Core, 30 % to the Satellite).
-     * **Condition B (Trend Intact + Satellite > 32 %):** Cease Satellite capital inflows entirely (100 % of new inflows allocate to the Core) to cap aggressive strategy concentration at roughly one-third of the total portfolio.
-     * **Condition C (Trend Weakening):** Sell Satellite assets to revert to the 20 % baseline target. Realized net gains are subsequently injected into the Core.
+     * **Yes (Trend Intact + Satellite 25 - 32 %):** Maintain exposure with controlled capital allocation (70 % of new inflows allocate to the Core, 30 % to the Satellite).
+     * **Yes (Trend Intact + Satellite > 32 %):** Cease Satellite capital inflows entirely (100 % of new inflows allocate to the Core) to cap aggressive strategy concentration at roughly one-third of the total portfolio.
+     * **No (Trend Weakening):** Sell Satellite assets to revert to the 20 % baseline target. Realized net gains are subsequently injected into the Core.
 
 2. **Lower Bound Scenario (Satellite < 15 %):**
    
@@ -84,7 +84,8 @@ Capital management and rebalancing are primarily executed via continuous monthly
 
 ## 4. The Core Portfolio (70/20/10)
 
-*Objective: Broad market capitalization with controlled volatility exposure.* *Profile: Growth-oriented, structurally stabilized, low-maintenance.*
+*Objective: Broad market capitalization with controlled volatility exposure.* \
+*Profile: Growth-oriented, structurally stabilized, low-maintenance.*
 
 * **Methodology:** A hybrid framework adapting John C. Bogle's principles and Tyler's *Golden Butterfly Portfolio* to a simplified, low-friction macro-index approach. The original fragmentation (e.g., Small vs. Large Cap, Short vs. Long Term Bonds) is deliberately consolidated into single broad market tickers to minimize rebalancing friction and operational complexity.
 * **The Growth Tilt:** The allocation implements a heavy 70 % equity weighting to maximize long-term generational compounding. Volatility is counterbalanced by typically uncorrelated stabilizers (Bonds and Gold) and a strict technical drawdown mitigation protocol.
@@ -117,7 +118,8 @@ This protocol optimizes the Austrian tax shield. Liquidating a mature position t
 
 ## 5. The Satellite Portfolio (Dual Momentum)
 
-*Objective: Alpha generation via dynamic trend capture and asset rotation.* *Profile: Aggressive, statistically grounded, actively managed.*
+*Objective: Alpha generation via dynamic trend capture and asset rotation.* \
+*Profile: Aggressive, statistically grounded, actively managed.*
 
 * **Methodology:** A composite model expanding on Mebane T. Faber's *Global Tactical Asset Allocation* and Gary Antonacci's *Dual Momentum*. Unlike standard implementations, this strategy applies an adaptive 4-5-3-2 weighting framework. This mathematical engine builds upon the foundational momentum anomaly research by Narasimhan Jegadeesh and Sheridan Titman, while integrating the high-sensitivity risk management principles of the *Vigilant Asset Allocation (VAA)* by Wouter Keller and aligning with the core concepts of *Adaptive Asset Allocation (AAA)* formulated by Adam Butler, Michael Philbrick, and Rodrigo Gordillo.
 * **Algorithm Constraints:** Relies strictly on End-Of-Month (Ultimo) pricing data. The portfolio allocates evenly to the Top 3 assets selected from a diversified, low-correlation universe (`ticker.csv`). 
@@ -136,7 +138,7 @@ To protect the mathematical edge of the strategy, the selection of instruments m
 
 ### The Quantitative Model (Mathematical Framework)
 
-**1. Trend Strength Quantification (Endpoint Sensitivity Reduction)**
+**1. Trend Strength Quantification (Endpoint Sensitivity Reduction)** \
 Standard momentum relies on point-to-point returns, making it highly vulnerable to single historical price outliers. By calculating a weighted average across four distinct segmented periods, the model effectively smooths the data distribution and reduces endpoint sensitivity, prioritizing the "Golden Zone" of trend persistence.
 
 $$
@@ -148,13 +150,17 @@ $$
 * **$R_{6M}$ (Weight: 3):** Intermediate trend confirmation.
 * **$R_{10M}$ (Weight: 2):** Long-term trend baseline. The 10-month parameter (equivalent to 200 days) is intentionally selected to align the strategy's maximum historical lookback with the data retrieval limits of the EODHD API Free Tier, ensuring technical operational feasibility.
 
-**2. Absolute Momentum (Trend Filter)** An asset is only eligible for selection if it exhibits both relative outperformance ($Score > 0$) AND absolute momentum (Current Price > SMA200). 
+**2. Absolute Momentum (Trend Filter)** \
+An asset is only eligible for selection if it exhibits both relative outperformance ($Score > 0$) AND absolute momentum (Current Price > SMA200). 
 
-**3. Cluster Risk Governance** Assets are categorized by constraint groups (e.g., Crypto, Real Estate). The algorithm enforces a strict limit (maximum 1 slot per group) within the Top 3 selection to prevent excessive sector concentration. 
+**3. Cluster Risk Governance** \
+Assets are categorized by constraint groups (e.g., Crypto, Real Estate). The algorithm enforces a strict limit (maximum 1 slot per group) within the Top 3 selection to prevent excessive sector concentration. 
 
-**4. Transaction Cost Mitigation (Rank Stability)** To prevent mathematical edge erosion through frequent trading fees (e.g., standard broker fees of ~5,90 € per execution), a buffer rule is applied: An existing asset is retained as long as it remains within the Top 5 rankings. Rotation is triggered strictly when an asset falls outside the Top 5 or violates the absolute momentum baseline. This operational suppression of unnecessary churn typically limits portfolio turnover to roughly 8-12 position changes annually, resulting in estimated transaction costs of 100 € - 150 € per year.
+**4. Transaction Cost Mitigation (Rank Stability)** \
+To prevent mathematical edge erosion through frequent trading fees (e.g., standard broker fees of ~5,90 € per execution), a buffer rule is applied: An existing asset is retained as long as it remains within the Top 5 rankings. Rotation is triggered strictly when an asset falls outside the Top 5 or violates the absolute momentum baseline. This operational suppression of unnecessary churn typically limits portfolio turnover to roughly 8-12 position changes annually, resulting in estimated transaction costs of 100 € - 150 € per year.
 
-**Critical Constraint (Minimum Capital):** Given base brokerage fees, the Satellite allocation should only be activated with a minimum designated capital of 5.000 € (corresponding to a total portfolio minimum of 25.000 € at a 20 % weighting) to ensure transactional friction does not negate the generated Alpha. Below this threshold, a static 70/20/10 Core-only portfolio is mandated.
+**Critical Constraint (Minimum Capital)** \
+Given base brokerage fees, the Satellite allocation should only be activated with a minimum designated capital of 5.000 € (corresponding to a total portfolio minimum of 25.000 € at a 20 % weighting) to ensure transactional friction does not negate the generated Alpha. Below this threshold, a static 70/20/10 Core-only portfolio is mandated.
 
 ---
 
