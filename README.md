@@ -47,7 +47,7 @@ The foundation relies on a strict **Core-Satellite Architecture**, functionally 
    * The primary detractor of compound interest is fiscal friction — both direct (Capital Gains Tax) and indirect (Withholding Tax Leakage).
    * **Core Allocation:** Maximizes tax deferral. Assets are held long-term to leverage the compounding effect on unrealized gains.
    * **Satellite Allocation:** Accepts capital gains taxes as operational friction, strictly contingent on the generated Alpha mathematically compensating for the tax drag.
-   * **Asset Selection:** Prioritizes the most efficient legal structure available (optimizing Domicile and Reporting Status) over mere index tracking.
+   * **Asset Selection:** Prioritizes the most efficient legal structure available over mere index tracking.
 
 2. **Diversification & Systematic Risk**
    
