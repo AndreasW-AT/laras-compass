@@ -88,31 +88,28 @@ Capital management and rebalancing are primarily executed via continuous monthly
 *Profile: Growth-oriented, structurally stabilized, low-maintenance.*
 
 * **Methodology:** A hybrid framework adapting John C. Bogle's principles and Tyler's *Golden Butterfly Portfolio* to a simplified, low-friction macro-index approach. The original fragmentation (e.g., Small vs. Large Cap, Short vs. Long Term Bonds) is deliberately consolidated into single broad market tickers to minimize rebalancing friction and operational complexity.
-* **The Growth Tilt:** The allocation implements a heavy 70 % equity weighting to maximize long-term generational compounding. Volatility is counterbalanced by typically uncorrelated stabilizers (Bonds and Gold) and a strict technical drawdown mitigation protocol.
+* **The Growth Tilt:** The allocation implements a heavy 70 % equity weighting to maximize long-term generational compounding. Volatility is counterbalanced by typically uncorrelated stabilizers (Bonds and Gold) and a systematic accelerated accumulation protocol.
 
-| Weight   | Asset Class     | Instrument (Example)                                 | Function                                     |
-|:-------- |:--------------- |:---------------------------------------------------- |:-------------------------------------------- |
-| **70 %** | Global Equities | Vanguard FTSE All-World Acc (VWCE)                   | Primary compounding engine.                  |
-| **20 %** | Global Bonds    | Vanguard Global Aggregate Bond EUR Hedged Acc (VAGF) | Volatility stabilization and interest yield. |
-| **10 %** | Gold            | EUWAX Gold II (EWG2)                                 | Currency hedge and inflation protection.     |
+| Weight   | Asset Class     | Instrument (Example)                            | Function                                                         |
+|:-------- |:--------------- |:------------------------------------------------|:---------------------------------------------------------------- |
+| **70 %** | Global Equities | Vanguard FTSE All-World Acc (VWCE)              | Primary compounding engine.                                      |
+| **20 %** | Gov. Bonds      | Vanguard Global Gov. Bond EUR Hedged Acc (VGGF) | Structural stabilization, crisis correlation and interest yield. |
+| **10 %** | Gold            | EUWAX Gold II (EWG2)                            | Currency hedge and inflation protection.                         |
 
-### Operational Mechanics & Drawdown Mitigation
+### Operational Mechanics & Accelerated Accumulation
 
-1. **Savings Plan Control (Counter-cyclical buying):** Monthly capital inflows are systematically routed into whichever of the three Core positions is most underweight relative to its percentage target.
-2. **Annual Rebalancing:** The baseline allocation (70/20/10) is reviewed annually. Active rebalancing (selling assets) is strictly executed only if positional deviations exceed **5 percentage points**.
+1. **Savings Plan Control (Standard):** Under normal market conditions (price > SMA200d/SMA10M), monthly capital inflows are systematically routed into whichever of the three Core positions is most underweight relative to its percentage target.
+2. **Annual Rebalancing:** The baseline allocation (70/20/10) is reviewed annually. The primary mechanism for maintaining target weights is the strategic routing of continuous capital inflows. Active rebalancing (liquidating assets) is strictly executed only if positional deviations exceed **5 percentage points** AND the mathematical benefit of realigning the portfolio demonstrably outweighs the resultant fiscal drag (capital gains tax) and transactional friction. This mandate ensures the protocol scales efficiently and remains mathematically viable regardless of the absolute portfolio magnitude.
 
-**Drawdown Mitigation Protocol (The SMA200 Rule):**
+**Accelerated Accumulation Protocol (The Anti-Cyclical Tilt):**
 
 * *Applicability:* Restricted to the core equity allocation (e.g., `VWCE`).
-* *Trigger mechanism:* The asset falls below its 200-day Simple Moving Average (SMA200) **AND** experiences a drawdown exceeding 20 % from its peak.
-* *Action:* Only when both parameters are met is the equity portion temporarily reallocated.
-* *Target Asset:* Physically replicating money market ETF (e.g., `Vanguard EUR Cash Acc (VCAA)`) or Cash, depending on the relation between position size, expected yield, and transaction costs.
-* *Redeployment:* Capital is reinvested into equities as soon as the price closes back above the SMA200.
+* *Trigger Mechanism:* The monthly closing price (Ultimo) of the equity asset falls below its 10-month Simple Moving Average (SMA10M).
+* *Action (Cost-Basis Reduction):* The standard proportional distribution of inflows is suspended. 100 % of all designated Core capital inflows are aggressively routed into the equity allocation to maximize share accumulation at depressed valuations.
+* *Redeployment:* Standard balancing of inflows across all Core assets (Equities, Bonds, Gold) resumes as soon as the monthly closing price recovers above the SMA10M.
 
-**Fiscal Rationale (The Dual-Trigger Logic):**
-This protocol optimizes the Austrian tax shield. Liquidating a mature position triggers a 27,5 % capital gains tax. For a position with substantial embedded gains, paying this tax destroys more capital than absorbing moderate drawdowns. We accept a temporary 20 % drawdown to preserve the compounding base, utilizing the SMA200 purely as a catastrophe filter, as the SMA200 alone generates excessive false signals (whipsawing).
-
-**Important Strategy Parameter:** This dual-trigger logic strictly assumes substantial embedded gains (> 60 %). For portfolios starting with minimal embedded gains (< 40 %), a single SMA200 trigger without the 20 % drawdown prerequisite may be mathematically optimal. This threshold requires an annual review every December.
+**Fiscal & Mathematical Rationale:**
+This protocol entirely avoids liquidating mature equity positions, thereby preserving the Austrian tax shield and preventing the 27,5 % capital gains tax drag on the compounding base. Instead of attempting to time market bottoms via lagging technical indicators — which historically causes investors to miss the most explosive phases of a market recovery — the strategy utilizes the SMA10M purely as an indicator for structural undervaluation. By funneling all available liquidity into equities during these phases, the portfolio actively lowers its average cost basis, ensuring disproportionate participation in the inevitable economic recovery.
 
 ---
 
@@ -168,7 +165,7 @@ Given base brokerage fees, the Satellite allocation should only be activated wit
 
 * **Normal Market Conditions:** The Core grows steadily, capturing general market returns. The Satellite functions as an accelerator, capitalizing on established, persistent macroeconomic trends.
 * **Crisis Scenarios (Market Crashes):**
-  * The Core temporarily depreciates but is buffered by the uncorrelated Gold and Bond allocations. In extreme drawdown events (> 20 %), the SMA200 protection protocol activates to preserve the capital base.
+  * The Core temporarily depreciates but is buffered by the inverse correlation of Government Bonds and the non-correlated Gold allocation. During sustained market downtrends (Price < SMA200d/SMA10M), the core switches into the Accelerated Accumulation Protocol, aggressively funneling all new capital inflows into equities to lower the average cost basis.
   * The Satellite rapidly cuts exposure via its high-sensitivity 1-month weighting and absolute momentum filters, moving completely into money market instruments or cash to preserve capital for re-entry at the systemic bottom.
 
 ---
@@ -179,7 +176,7 @@ The asset selection process is structurally optimized for Austrian fiscal regula
 
 * **Domicile Optimization ("Ireland-Bias"):** To mitigate the standard 30 % US withholding tax on dividends, funds holding significant US equity exposure must be domiciled in Ireland (ISIN prefix "IE") to benefit from the reduced 15 % rate under the US-Ireland Double Taxation Treaty.
 * **Reporting Fund Status ("Meldefonds"):** All utilized instruments must be officially registered as "Meldefonds" with the Oesterreichische Kontrollbank (OeKB) to avoid punitive lump-sum taxation ("Pauschalbesteuerung").
-* **Cash & Money Market Transparency ("AgE Protection"):** Synthetic, swap-based ETFs are excluded to avert opaque tax events regarding deemed distributed income ("ausschüttungsgleiche Erträge"). The strategy utilizes physically replicating ETFs whenever market availability permits.
+* **Transparency & Replicability ("Opaque AgE Protection"):** Synthetic, swap-based ETFs are strictly excluded. Under Austrian tax law, the deemed distributed income ("ausschüttungsgleiche Erträge") for synthetic funds is calculated based on the fund's actual substitute basket, not the tracked index. This structural mismatch frequently triggers highly unpredictable, inflated tax events. The strategy utilizes physically replicating ETFs exclusively, ensuring that the fiscal drag is strictly tied to the transparent, fundamental yield of the targeted macro-asset.
 
 ---
 
