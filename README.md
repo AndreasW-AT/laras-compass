@@ -107,9 +107,7 @@ Capital management and rebalancing are primarily executed via continuous monthly
 * *Trigger Mechanism:* The monthly closing price (Ultimo) of the equity asset falls below its 10-month Simple Moving Average (SMA10M).
 * *Action (Cost-Basis Reduction):* The standard proportional distribution of inflows is suspended. 100 % of all designated Core capital inflows are aggressively routed into the equity allocation to maximize share accumulation at depressed valuations.
 * *Redeployment:* Standard balancing of inflows across all Core assets (Equities, Bonds, Gold) resumes as soon as the monthly closing price recovers above the SMA10M.
-
-**Fiscal & Mathematical Rationale:**
-This protocol entirely avoids liquidating mature equity positions, thereby preserving the Austrian tax shield and preventing the 27,5 % capital gains tax drag on the compounding base. Instead of attempting to time market bottoms via lagging technical indicators — which historically causes investors to miss the most explosive phases of a market recovery — the strategy utilizes the SMA10M purely as an indicator for structural undervaluation. By funneling all available liquidity into equities during these phases, the portfolio actively lowers its average cost basis, ensuring disproportionate participation in the inevitable economic recovery.
+* This buy-and-hold protocol functions as the systematic counter-weight to the Satellite’s momentum logic. While the Satellite exits during price declines, the Core utilizes phases below the SMA10M for aggressive cost-basis reduction. This "bet on global recovery" ensures that the portfolio accumulates maximum shares at depressed valuations, which historically serves as the primary driver for outsized returns during the subsequent recovery phase.
 
 ---
 
