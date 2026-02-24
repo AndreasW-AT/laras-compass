@@ -26,8 +26,6 @@
 
 ---
 
----
-
 ## 1. Prologue
 
 > *This work is dedicated to my daughter, Lara.*
@@ -88,10 +86,11 @@ Capital management and rebalancing are primarily executed via continuous monthly
 *Profile: Growth-oriented, structurally stabilized, low-maintenance.*
 
 * **Methodology:** A hybrid framework adapting John C. Bogle's principles and Tyler's *Golden Butterfly Portfolio* to a simplified, low-friction macro-index approach. The original fragmentation (e.g., Small vs. Large Cap, Short vs. Long Term Bonds) is deliberately consolidated into single broad market tickers to minimize rebalancing friction and operational complexity.
+
 * **The Growth Tilt:** The allocation implements a heavy 70 % equity weighting to maximize long-term generational compounding. Volatility is counterbalanced by typically uncorrelated stabilizers (Bonds and Gold) and a systematic accelerated accumulation protocol.
 
 | Weight   | Asset Class     | Instrument (Example)                            | Function                                                         |
-|:-------- |:--------------- |:------------------------------------------------|:---------------------------------------------------------------- |
+|:-------- |:--------------- |:----------------------------------------------- |:---------------------------------------------------------------- |
 | **70 %** | Global Equities | Vanguard FTSE All-World Acc (VWCE)              | Primary compounding engine.                                      |
 | **20 %** | Gov. Bonds      | Vanguard Global Gov. Bond EUR Hedged Acc (VGGF) | Structural stabilization, crisis correlation and interest yield. |
 | **10 %** | Gold            | EUWAX Gold II (EWG2)                            | Currency hedge and inflation protection.                         |
@@ -116,7 +115,8 @@ Capital management and rebalancing are primarily executed via continuous monthly
 *Objective: Alpha generation via dynamic trend capture and asset rotation.* \
 *Profile: Aggressive, statistically grounded, actively managed.*
 
-* **Methodology:** A composite model expanding on Mebane T. Faber's *Global Tactical Asset Allocation* and Gary Antonacci's *Dual Momentum*. Unlike standard implementations, this strategy applies an adaptive 4-5-3-2 weighting framework. This mathematical engine builds upon the foundational momentum anomaly research by Narasimhan Jegadeesh and Sheridan Titman, while integrating the high-sensitivity risk management principles of the *Vigilant Asset Allocation (VAA)* by Wouter Keller and aligning with the core concepts of *Adaptive Asset Allocation (AAA)* formulated by Adam Butler, Michael Philbrick, and Rodrigo Gordillo.
+* **Methodology:** A composite model expanding on Mebane T. Faber's *Global Tactical Asset Allocation* and Gary Antonacci's *Dual Momentum*. Unlike standard implementations, this strategy applies an adaptive 2-5-4-3 weighting framework. This mathematical engine builds upon the foundational momentum anomaly research by Narasimhan Jegadeesh and Sheridan Titman, incorporates the cross-asset momentum principles of AQR Capital Management (Cliff Asness), and aligns with the core concepts of *Adaptive Asset Allocation (AAA)* formulated by Adam Butler, Michael Philbrick, and Rodrigo Gordillo.
+
 * **Algorithm Constraints:** Relies strictly on End-Of-Month (Ultimo) pricing data. The portfolio allocates evenly to the Top 3 assets selected from a diversified, low-correlation universe (`ticker.csv`). 
 
 ### The Universe Selection ("Algorithmic Alpha vs. Beta Asset")
@@ -137,13 +137,14 @@ To protect the mathematical edge of the strategy, the selection of instruments m
 Standard momentum relies on point-to-point returns, making it highly vulnerable to single historical price outliers. By calculating a weighted average across four distinct segmented periods, the model effectively smooths the data distribution and reduces endpoint sensitivity, prioritizing the "Golden Zone" of trend persistence.
 
 $$
-Score = \frac{4 \cdot R_{1M} + 5 \cdot R_{3M} + 3 \cdot R_{6M} + 2 \cdot R_{10M}}{14}
+Score = \frac{2 \cdot R_{1M} + 5 \cdot R_{3M} + 4 \cdot R_{6M} + 3 \cdot R_{10M}}{14}
 $$
 
-* **$R_{1M}$ (Weight: 4):** Functions as a rapid regime-shift sensor, directly adapting the logic of Wouter Keller's VAA. It allows the model to act as a sensitive crash detector, cutting exposure during sudden macroeconomic shocks before deep drawdowns manifest.
-* **$R_{3M}$ (Weight: 5):** The primary anchor, capturing the statistical "sweet spot" of trend establishment.
-* **$R_{6M}$ (Weight: 3):** Intermediate trend confirmation.
-* **$R_{10M}$ (Weight: 2):** Long-term trend baseline. The 10-month parameter (equivalent to 200 days) is intentionally selected to align the strategy's maximum historical lookback with the data retrieval limits of the EODHD API Free Tier, ensuring technical operational feasibility.
+* **$R_{1M}$ (Weight: 2):** Functions as a minimal tie-breaker. The weight is intentionally suppressed to filter out short-term statistical noise and prevent performance erosion caused by mean reversion. 
+* **$R_{3M}$ (Weight: 5) & $R_{6M}$ (Weight: 4):** The core anchors of the strategy. Research by Narasimhan Jegadeesh & Sheridan Titman (the pioneers of momentum research) and AQR Capital (Cliff Asness) provides clear evidence: The strongest, most robust momentum signal across asset classes, least vulnerable to mean reversion, resides precisely within the 3 to 6-month window.
+* **$R_{10M}$ (Weight: 3):** Long-term trend baseline. The 10-month parameter (equivalent to 200 days) is intentionally selected to align the strategy's maximum historical lookback with the data retrieval limits of the EODHD API Free Tier, ensuring technical operational feasibility.
+
+**Macro-Inertia Calibration & Signal-to-Noise Integrity:** The specific mathematical weighting ($2 \cdot R_{1M} + 5 \cdot R_{3M} + 4 \cdot R_{6M} + 3 \cdot R_{10M}$) is explicitly calibrated to capture the structural inertia of broad macroeconomic sectors and primary asset classes. It is inherently unsuitable for the higher volatility profiles of single equities, narrow thematic ETFs, or isolated smart-beta factors. Applying this specific smoothing model to highly volatile micro-assets would degrade the signal-to-noise ratio, resulting in severe signal lag and delayed execution (whipsawing). Therefore, the strict adherence to the "Lumping vs. Slicing" doctrine is a fundamental mathematical prerequisite for the algorithm's validity, not merely a stylistic preference.
 
 **2. Absolute Momentum (Trend Filter)** \
 An asset is only eligible for selection if it exhibits both relative outperformance ($Score > 0$) AND absolute momentum (Current Price > SMA200). 
@@ -152,7 +153,7 @@ An asset is only eligible for selection if it exhibits both relative outperforma
 Assets are categorized by constraint groups (e.g., Crypto, Real Estate). The algorithm enforces a strict limit (maximum 1 slot per group) within the Top 3 selection to prevent excessive sector concentration. 
 
 **4. Transaction Cost Mitigation (Rank Stability)** \
-To prevent mathematical edge erosion through frequent trading fees (e.g., standard broker fees of ~5,90 € per execution), a buffer rule is applied: An existing asset is retained as long as it remains within the Top 5 rankings. Rotation is triggered strictly when an asset falls outside the Top 5 or violates the absolute momentum baseline. This operational suppression of unnecessary churn typically limits portfolio turnover to roughly 8-12 position changes annually, resulting in estimated transaction costs of 100 € - 150 € per year.
+To prevent mathematical edge erosion through frictional costs (e.g., broker fees, bid-ask spreads, and tax events), a buffer rule is applied: An existing asset is retained as long as it remains within the Top 7 rankings. This threshold provides a structural tolerance band, representing the upper echelon of the dynamic investment universe. Rotation is triggered strictly when an asset falls outside this Top 7 buffer or violates the absolute momentum baseline. This operational suppression of unnecessary churn ensures that the algorithm prioritizes signal stability over marginal ranking shifts, optimizing net compounding.
 
 **Critical Constraint (Minimum Capital)** \
 Given base brokerage fees, the Satellite allocation should only be activated with a minimum designated capital of 5.000 € (corresponding to a total portfolio minimum of 25.000 € at a 20 % weighting) to ensure transactional friction does not negate the generated Alpha. Below this threshold, a static 70/20/10 Core-only portfolio is mandated.
@@ -164,7 +165,7 @@ Given base brokerage fees, the Satellite allocation should only be activated wit
 * **Normal Market Conditions:** The Core grows steadily, capturing general market returns. The Satellite functions as an accelerator, capitalizing on established, persistent macroeconomic trends.
 * **Crisis Scenarios (Market Crashes):**
   * The Core temporarily depreciates but is buffered by the inverse correlation of Government Bonds and the non-correlated Gold allocation. During sustained market downtrends (Price < SMA200d/SMA10M), the core switches into the Accelerated Accumulation Protocol, aggressively funneling all new capital inflows into equities to lower the average cost basis.
-  * The Satellite rapidly cuts exposure via its high-sensitivity 1-month weighting and absolute momentum filters, moving completely into money market instruments or cash to preserve capital for re-entry at the systemic bottom.
+  * The Satellite rapidly cuts exposure via its absolute momentum filters, moving completely into money market instruments or cash to preserve capital for re-entry at the systemic bottom.
 
 ---
 
@@ -230,7 +231,7 @@ The script provides a terminal-based output ranking and exports a detailed histo
 python satellite-strategy.py
 ```
 
-**Holdings Assessment & Cost Analysis:** To apply the Rank Stability Rule and calculate precise turnover costs, pass the currently held assets via the `--current` argument:
+**Holdings Assessment & Cost Analysis:** To apply the Rank Stability Rule and calculate precise turnover logic, pass the currently held assets via the `--current` argument:
 
 Bash
 

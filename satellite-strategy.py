@@ -3,6 +3,7 @@ import requests
 import argparse
 import os
 import calendar
+import time
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
@@ -12,8 +13,7 @@ from dotenv import load_dotenv
 
 CASH_TICKER = "VCAA.XETRA"  
 CASH_NAME   = "CASH (Vanguard EUR Cash)"
-CASH_ISIN   = "IE000SOORXS0" # ISIN for the fallback to facilitate broker execution
-TRADE_COST_ESTIMATE = 5.90   # Estimated execution cost per trade in EUR (Flatex)
+CASH_ISIN   = "IE000SOORXS0" 
 
 WEIGHTS = {'1M': 4, '3M': 5, '6M': 3, '10M': 2}
 SMA_WINDOW_DAYS = 200
@@ -23,29 +23,57 @@ BASE_URL = "https://eodhd.com/api/eod/"
 # DATA RETRIEVAL & PROCESSING
 # ==============================================================================
 
-def fetch_history(ticker, api_key):
+def fetch_history(ticker, api_key, max_retries=3):
     start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
     url = f"{BASE_URL}{ticker}"
     params = {'api_token': api_key, 'from': start_date, 'fmt': 'json'}
     
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        data = response.json()
-        df = pd.DataFrame(data)
-        
-        if 'adjusted_close' in df.columns:
-            df = df[['date', 'adjusted_close']].rename(columns={'adjusted_close': 'close'})
-        else:
-            df = df[['date', 'close']]
+    for attempt in range(max_retries):
+        try:
+            response = requests.get(url, params=params, timeout=10)
             
-        df['date'] = pd.to_datetime(df['date'])
-        df.set_index('date', inplace=True)
-        df.sort_index(inplace=True)
-        return df
-    except Exception as e:
-        print(f"   [ERROR] Data retrieval failed for {ticker}: {e}")
-        return None
+            # Handling Rate Limits (429) and Server Errors (500, 502, 503, 504)
+            if response.status_code == 429 or response.status_code >= 500:
+                wait_time = 2 ** attempt
+                print(f"      [API HTTP {response.status_code}] Delaying execution for {ticker}. Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+                continue
+                
+            response.raise_for_status()
+            data = response.json()
+            
+            # Verify if API returned a valid list structure
+            if not isinstance(data, list):
+                print(f"      [ERROR] Unexpected JSON structure for {ticker}.")
+                return None
+
+            df = pd.DataFrame(data)
+            
+            if df.empty:
+                print(f"      [WARNING] No historical data returned for {ticker}.")
+                return None
+            
+            if 'adjusted_close' in df.columns:
+                df = df[['date', 'adjusted_close']].rename(columns={'adjusted_close': 'close'})
+            elif 'close' in df.columns:
+                df = df[['date', 'close']]
+            else:
+                print(f"      [ERROR] Required price columns missing for {ticker}.")
+                return None
+                
+            df['date'] = pd.to_datetime(df['date'])
+            df.set_index('date', inplace=True)
+            df.sort_index(inplace=True)
+            return df
+            
+        except requests.exceptions.RequestException as e:
+            print(f"      [ERROR] Network/API request failed for {ticker}: {e}")
+            break
+        except Exception as e:
+            print(f"      [ERROR] Data processing failed for {ticker}: {e}")
+            break
+            
+    return None
 
 def get_monthly_data(df):
     df = df.copy()
@@ -55,7 +83,6 @@ def get_monthly_data(df):
     return monthly_df
 
 def calculate_metrics(df_daily):
-    # Strict 200 days minimum check to ensure statistical validity of the SMA
     if len(df_daily) < 200: 
         print(f"      -> Excluded: Insufficient historical data ({len(df_daily)} days < 200)")
         return None
@@ -66,7 +93,6 @@ def calculate_metrics(df_daily):
     
     _, last_day_of_month = calendar.monthrange(now.year, now.month)
     
-    # Execution window logic: Assess completion of the current month
     if (last_available_date.month == now.month) and (last_available_date.year == now.year):
         cutoff_day = last_day_of_month - 2
         if now.day < cutoff_day:
@@ -100,7 +126,6 @@ def calculate_metrics(df_daily):
     df_daily_sliced = df_daily.loc[:p0_date]
     sma200 = df_daily_sliced['close'].rolling(window=SMA_WINDOW_DAYS).mean().iloc[-1]
     
-    # Absolute momentum constraint
     is_uptrend = (p0_price > sma200) and (score > 0)
 
     return {
@@ -123,7 +148,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--api-key', type=str, default=None)
     parser.add_argument('--file', type=str, default='ticker.csv')
-    parser.add_argument('--current', type=str, default='', help='Comma-separated list of currently held tickers (e.g., SWDA.LSE,GLD.US)')
+    parser.add_argument('--current', type=str, default='', help='Comma-separated list of currently held tickers')
     args = parser.parse_args()
 
     if args.api_key: api_key = args.api_key
@@ -173,19 +198,22 @@ def main():
                     'R1M': metrics['r1m'], 'R3M': metrics['r3m'],
                     'R6M': metrics['r6m'], 'R10M': metrics['r10m']
                 })
+        
+        # Proactive rate limiting to respect EODHD 10 req/sec limit
+        time.sleep(0.2)
 
     if not results: return
 
     df_results = pd.DataFrame(results).sort_values(by='Score', ascending=False)
     
     # ---------------------------------------------------------
-    # APPLY RANK STABILITY RULE (Top 5 Buffer) & CONSTRAINT CHECK
+    # APPLY RANK STABILITY RULE (Top 7 Buffer) & CONSTRAINT CHECK
     # ---------------------------------------------------------
     
     if 'constraint_group' not in df_results.columns:
         df_results['constraint_group'] = None
     
-    top5_df = df_results.head(5)
+    buffer_df = df_results.head(7)
     
     final_allocation = []
     group_usage = {}
@@ -193,7 +221,6 @@ def main():
     def add_to_allocation(row_dict):
         final_allocation.append(row_dict)
         grp = row_dict.get('constraint_group')
-        # Increment usage count if a constraint group is defined
         if pd.notna(grp) and str(grp).strip():
             grp_str = str(grp).strip()
             group_usage[grp_str] = group_usage.get(grp_str, 0) + 1
@@ -201,13 +228,12 @@ def main():
     # --- Step 1: Retain current holdings (Rank Stability Buffer) ---
     if current_holdings:
         for ticker in current_holdings:
-            match = top5_df[(top5_df['Ticker'] == ticker) & (top5_df['Is_Uptrend'] == True)]
+            match = buffer_df[(buffer_df['Ticker'] == ticker) & (buffer_df['Is_Uptrend'] == True)]
             if not match.empty:
                 row_dict = match.iloc[0].to_dict()
                 grp = row_dict.get('constraint_group')
                 grp_str = str(grp).strip() if pd.notna(grp) and str(grp).strip() else None
                 
-                # Verify retention does not violate constraint maximum (limit: 1 per group)
                 if grp_str and group_usage.get(grp_str, 0) >= 1:
                     continue
                 
@@ -221,15 +247,12 @@ def main():
             
         ticker = row['Ticker']
         
-        # Bypass if asset was already allocated in Step 1
         if ticker in [a['Ticker'] for a in final_allocation]:
             continue
             
-        # Absolute Momentum requirement
         if not row['Is_Uptrend']:
             continue
             
-        # Constraint validation for new acquisitions
         grp = row.get('constraint_group')
         grp_str = str(grp).strip() if pd.notna(grp) and str(grp).strip() else None
         
@@ -266,12 +289,11 @@ def main():
     # OUTPUT GENERATION
     # ---------------------------------------------------------
     print("\n" + "-"*60)
-    print(" ALGORITHMIC RANKING (Top 5 - For Rank Stability Rule)")
+    print(" ALGORITHMIC RANKING (Top 7 - For Rank Stability Rule)")
     print("-" * 60)
     
     cols_to_show = ['Ticker', 'ISIN', 'Name', 'Score', 'Is_Uptrend']
-    # Format Score to AT Standard (e.g. "12,34 %")
-    print(top5_df[cols_to_show].to_string(index=False, formatters={'Score': lambda x: f"{x:.2%}".replace('.', ',').replace('%', ' %')}))
+    print(buffer_df[cols_to_show].to_string(index=False, formatters={'Score': lambda x: f"{x:.2%}".replace('.', ',').replace('%', ' %')}))
 
     print("\n" + "-"*60)
     print(" FINAL ALLOCATION DIRECTIVE (Post-Filter Assessment)")
@@ -292,24 +314,16 @@ def main():
     
     print(pd.DataFrame(display_alloc).to_string(index=False))
 
-    # TURNOVER & COST ANALYSIS
     if current_holdings:
         new_tickers = [a['Ticker'] for a in final_allocation if a['Ticker'] != CASH_TICKER]
         sells = [t for t in current_holdings if t not in new_tickers and t != CASH_TICKER]
         buys  = [t for t in new_tickers if t not in current_holdings]
         
-        trades_needed = len(sells) + len(buys)
-        
-        # Calculate cost and format for AT context (e.g. "11,80 €")
-        cost_str = f"{trades_needed * TRADE_COST_ESTIMATE:.2f}".replace('.', ',')
-        
-        print("\nTURNOVER & COST ANALYSIS:")
+        print("\nTURNOVER LOGIC:")
         print(f"   Current Holdings: {current_holdings}")
         print(f"   Target Target:    {new_tickers}")
         print(f"   Required Sales:   {sells}")
         print(f"   Required Buys:    {buys}")
-        print(f"   Total Trades:     {trades_needed}")
-        print(f"   Estimated Cost:   ~{cost_str} €")
 
     timestamp = datetime.now().strftime('%Y-%m-%d')
     filename = f"satellite_signals_{timestamp}.csv"
