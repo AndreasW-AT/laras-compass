@@ -80,7 +80,7 @@ Capital management and rebalancing are primarily executed via continuous monthly
 
 ---
 
-## 4. The Core Portfolio (70/20/10)
+## 4. The Core Portfolio
 
 *Objective: Broad market capitalization with controlled volatility exposure.* \
 *Profile: Growth-oriented, structurally stabilized, low-maintenance.*
@@ -110,7 +110,7 @@ Capital management and rebalancing are primarily executed via continuous monthly
 
 ---
 
-## 5. The Satellite Portfolio (Dual Momentum)
+## 5. The Satellite Portfolio
 
 *Objective: Alpha generation via dynamic trend capture and asset rotation.* \
 *Profile: Aggressive, statistically grounded, actively managed.*
@@ -131,9 +131,9 @@ To protect the mathematical edge of the strategy, the selection of instruments m
   1. *Delta-1 Only:* Must track the underlying 1:1. Leveraged products and instruments with profit caps (Discount/Bonus Certificates) are strictly forbidden.
   2. *Issuer Quality:* Only systemically relevant major banks (e.g., Morgan Stanley, J.P. Morgan, UBS, Goldman Sachs) to minimize issuer risk.
 
-### The Quantitative Model (Mathematical Framework)
+### The Quantitative Model
 
-**1. Trend Strength Quantification (Endpoint Sensitivity Reduction)** \
+**1. Trend Strength Quantification and Endpoint Sensitivity Reduction** \
 Standard momentum relies on point-to-point returns, making it highly vulnerable to single historical price outliers. By calculating a weighted average across four distinct segmented periods, the model effectively smooths the data distribution and reduces endpoint sensitivity, prioritizing the "Golden Zone" of trend persistence.
 
 $$
@@ -144,7 +144,7 @@ $$
 * **$R_{3M}$ (Weight: 5) & $R_{6M}$ (Weight: 4):** The core anchors of the strategy. Research by Narasimhan Jegadeesh & Sheridan Titman (the pioneers of momentum research) and AQR Capital (Cliff Asness) provides clear evidence: The strongest, most robust momentum signal across asset classes, least vulnerable to mean reversion, resides precisely within the 3 to 6-month window.
 * **$R_{10M}$ (Weight: 3):** Long-term trend baseline. The 10-month parameter (equivalent to 200 days) is intentionally selected to align the strategy's maximum historical lookback with the data retrieval limits of the EODHD API Free Tier, ensuring technical operational feasibility.
 
-**Macro-Inertia Calibration & Signal-to-Noise Integrity:** The specific mathematical weighting ($2 \cdot R_{1M} + 5 \cdot R_{3M} + 4 \cdot R_{6M} + 3 \cdot R_{10M}$) is explicitly calibrated to capture the structural inertia of broad macroeconomic sectors and primary asset classes. It is inherently unsuitable for the higher volatility profiles of single equities, narrow thematic ETFs, or isolated smart-beta factors. Applying this specific smoothing model to highly volatile micro-assets would degrade the signal-to-noise ratio, resulting in severe signal lag and delayed execution (whipsawing). Therefore, the strict adherence to the "Lumping vs. Slicing" doctrine is a fundamental mathematical prerequisite for the algorithm's validity, not merely a stylistic preference.
+**Macro-Inertia Calibration and Signal-to-Noise Integrity:** The specific mathematical weighting ($2 \cdot R_{1M} + 5 \cdot R_{3M} + 4 \cdot R_{6M} + 3 \cdot R_{10M}$) is explicitly calibrated to capture the structural inertia of broad macroeconomic sectors and primary asset classes. It is inherently unsuitable for the higher volatility profiles of single equities, narrow thematic ETFs, or isolated smart-beta factors. Applying this specific smoothing model to highly volatile micro-assets would degrade the signal-to-noise ratio, resulting in severe signal lag and delayed execution (whipsawing). Therefore, the strict adherence to the "Lumping vs. Slicing" doctrine is a fundamental mathematical prerequisite for the algorithm's validity, not merely a stylistic preference.
 
 **2. Absolute Momentum (Trend Filter)** \
 An asset is only eligible for selection if it exhibits both relative outperformance ($Score > 0$) AND absolute momentum (Current Price > SMA200). 
@@ -169,7 +169,7 @@ Given base brokerage fees, the Satellite allocation should only be activated wit
 
 ---
 
-## 7. Jurisdictional Framework (Austria)
+## 7. Jurisdictional Framework
 
 The asset selection process is structurally optimized for Austrian fiscal regulations to prevent systemic performance degradation.
 
