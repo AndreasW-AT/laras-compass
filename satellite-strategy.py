@@ -15,7 +15,7 @@ CASH_TICKER = "VCAA.XETRA"
 CASH_NAME   = "CASH (Vanguard EUR Cash)"
 CASH_ISIN   = "IE000SOORXS0" 
 
-WEIGHTS = {'1M': 4, '3M': 5, '6M': 3, '10M': 2}
+WEIGHTS = {'1M': 2, '3M': 5, '6M': 4, '10M': 3}
 SMA_WINDOW_DAYS = 200
 BASE_URL = "https://eodhd.com/api/eod/"
 
@@ -32,9 +32,9 @@ def fetch_history(ticker, api_key, max_retries=3):
         try:
             response = requests.get(url, params=params, timeout=10)
             
-            # Handling Rate Limits (429) and Server Errors (500, 502, 503, 504)
+            # Handling Rate Limits (429) and Server Errors (500+)
             if response.status_code == 429 or response.status_code >= 500:
-                wait_time = 2 ** attempt
+                wait_time = (attempt + 1) * 10
                 print(f"      [API HTTP {response.status_code}] Delaying execution for {ticker}. Retrying in {wait_time}s...")
                 time.sleep(wait_time)
                 continue
@@ -67,9 +67,15 @@ def fetch_history(ticker, api_key, max_retries=3):
             return df
             
         except requests.exceptions.RequestException as e:
-            print(f"      [ERROR] Network/API request failed for {ticker}: {e}")
-            break
+            # Fix aus dem Fork: Bei Timeout/Network-Error die Retry-Schleife nutzen, nicht sofort abbrechen
+            if attempt < max_retries - 1:
+                print(f"      [WARNING] Network issue for {ticker} ({e}). Retrying in 5s...")
+                time.sleep(5)
+            else:
+                print(f"      [ERROR] Network request failed definitively for {ticker} after {max_retries} attempts.")
+                break
         except Exception as e:
+            # Bei fundamentalen Datenverarbeitungsfehlern (Pandas etc.) sofort abbrechen
             print(f"      [ERROR] Data processing failed for {ticker}: {e}")
             break
             
@@ -142,7 +148,6 @@ def main():
 
     print("\n" + "="*60)
     print(" SATELLITE STRATEGY ALGORITHM")
-    print(" Strategy: GTAA Agg 3 Dual Momentum")
     print("="*60 + "\n")
 
     parser = argparse.ArgumentParser()
@@ -320,10 +325,10 @@ def main():
         buys  = [t for t in new_tickers if t not in current_holdings]
         
         print("\nTURNOVER LOGIC:")
-        print(f"   Current Holdings: {current_holdings}")
-        print(f"   Target Target:    {new_tickers}")
-        print(f"   Required Sales:   {sells}")
-        print(f"   Required Buys:    {buys}")
+        print(f"   Current Holdings:     {current_holdings}")
+        print(f"   Target Allocation:    {new_tickers}")
+        print(f"   Required Sales:       {sells}")
+        print(f"   Required Buys:        {buys}")
 
     timestamp = datetime.now().strftime('%Y-%m-%d')
     filename = f"satellite_signals_{timestamp}.csv"
