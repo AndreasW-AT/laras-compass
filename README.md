@@ -155,8 +155,7 @@ Assets are categorized by constraint groups (e.g., Crypto, Real Estate). The alg
 **4. Transaction Cost Mitigation (Rank Stability)** \
 To prevent mathematical edge erosion through frictional costs (e.g., broker fees, bid-ask spreads, and tax events), a buffer rule is applied: An existing asset is retained as long as it remains within the Top 7 rankings. This threshold provides a structural tolerance band, representing the upper echelon of the dynamic investment universe. Rotation is triggered strictly when an asset falls outside this Top 7 buffer or violates the absolute momentum baseline. This operational suppression of unnecessary churn ensures that the algorithm prioritizes signal stability over marginal ranking shifts, optimizing net compounding.
 
-**Critical Constraint (Minimum Capital)** \
-Given base brokerage fees, the Satellite allocation should only be activated with a minimum designated capital of 5.000 € (corresponding to a total portfolio minimum of 25.000 € at a 20 % weighting) to ensure transactional friction does not negate the generated Alpha. Below this threshold, a static 70/20/10 Core-only portfolio is mandated.
+**Critical Constraint (Minimum Capital):** Given base brokerage fees, the Satellite allocation should only be activated with a minimum designated capital of 5.000 € (corresponding to a total portfolio minimum of 25.000 € at a 20 % weighting) to ensure transactional friction does not negate the generated Alpha. Below this threshold, a static 70/20/10 Core-only portfolio is mandated.
 
 ---
 
@@ -166,6 +165,16 @@ Given base brokerage fees, the Satellite allocation should only be activated wit
 * **Crisis Scenarios (Market Crashes):**
   * The Core temporarily depreciates but is buffered by the inverse correlation of Government Bonds and the non-correlated Gold allocation. During sustained market downtrends (Price < SMA200d/SMA10M), the core switches into the Accelerated Accumulation Protocol, aggressively funneling all new capital inflows into equities to lower the average cost basis.
   * The Satellite rapidly cuts exposure via its absolute momentum filters, moving completely into money market instruments or cash to preserve capital for re-entry at the systemic bottom.
+  
+  ---
+
+## 6. Historical Context & Expected Behavior
+
+* **Normal Market Conditions:** The Core grows steadily, capturing general market returns. The Satellite functions as an accelerator, capitalizing on established, persistent macroeconomic trends.
+* **Crisis Scenarios (Market Crashes):**
+  * The Core temporarily depreciates but is buffered by the inverse correlation of Government Bonds and the non-correlated Gold allocation. During sustained market downtrends (Price < SMA200d/SMA10M), the core switches into the Accelerated Accumulation Protocol, aggressively funneling all new capital inflows into equities to lower the average cost basis.
+  * The Satellite rapidly cuts exposure via its absolute momentum filters, moving completely into money market instruments or cash to preserve capital for re-entry at the systemic bottom.
+* **Risk-Adjusted Performance (Sortino Ratio):** Theoretically, the synthesis of the Core's structural stability and the Satellite's absolute momentum filter is designed to optimize the portfolio's Sortino Ratio. By systematically clipping the left-tail risk (severe drawdowns) while capturing macro uptrends, the architecture aims for asymmetric compounding. Ultimately, empirical future market data will be the sole validator of this theoretical edge.
 
 ---
 
@@ -241,6 +250,8 @@ python satellite-strategy.py --current [TICKER1].XETRA,[TICKER2].XETRA,[TICKER3]
 
 ---
 
+---
+
 ## 9. Operational Protocol
 
 - **Frequency:** The technical assessment is executed once per month.
@@ -248,6 +259,8 @@ python satellite-strategy.py --current [TICKER1].XETRA,[TICKER2].XETRA,[TICKER3]
 - **Data Processing:** The script must be run at the end of the month (Ultimo) to capture the complete monthly data candle accurately. The internal calendar module allows execution within the final 2-3 trading days of the current month.
 
 - **Execution Window:** Necessary portfolio adjustments are executed within the first 5 trading days of the subsequent month.
+
+- **Intra-Month Discipline (No Ad-Hoc Interventions):** The strategy strictly ignores intra-month price volatility. If an asset temporarily breaches its SMA200 during the month, no preemptive action is taken. The algorithm relies exclusively on end-of-month closing prices to filter out market noise and prevent whipsaw losses. Don't let yourself be tempted into anything continuous monitoring or emotional overrides.
 
 - **Hard Stop Execution:** If specific technical entry triggers are utilized but remain unmet, market orders are placed on the close of the 5th trading day to ensure adherence to the algorithmic allocation. Performance chasing beyond this window is prohibited.
 
