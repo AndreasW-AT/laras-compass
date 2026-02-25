@@ -162,7 +162,9 @@ To prevent mathematical edge erosion through frictional costs (e.g., broker fees
 ## 6. Historical Context & Expected Behavior
 
 * **Normal Market Conditions:** The Core grows steadily, capturing general market returns. The Satellite functions as an accelerator, capitalizing on established, persistent macroeconomic trends.
+
 * **Crisis Scenarios (Market Crashes):**
+  
   * The Core temporarily depreciates but is buffered by the inverse correlation of Government Bonds and the non-correlated Gold allocation. During sustained market downtrends (Price < SMA200d/SMA10M), the core switches into the Accelerated Accumulation Protocol, aggressively funneling all new capital inflows into equities to lower the average cost basis.
   * The Satellite rapidly cuts exposure via its absolute momentum filters, moving completely into money market instruments or cash to preserve capital for re-entry at the systemic bottom.
   
@@ -270,7 +272,7 @@ python satellite-strategy.py --current [TICKER1].XETRA,[TICKER2].XETRA,[TICKER3]
 
 - **EODHD (End-Of-Day Historical Data):** Financial API providing global historical market data. (https://eodhd.com/)
 
-- **Portfolio Visualizer:** Quantitative tools for historical backtesting and correlation analysis. Note: Correlation does not imply causation. (https://www.portfoliovisualizer.com/)
+- **Portfolio Visualizer:** Quantitative tools for historical backtesting and correlation analysis. Operated by SRL Global (Statistical Research Laboratory). Note: Correlation does not imply causation. (https://www.portfoliovisualizer.com/ | https://srlglobal.com/)
 
 - **Portfolio Charts:** Asset allocation research and performance visualization. (https://portfoliocharts.com/)
 
