@@ -5,7 +5,7 @@
 ---
 
 **Status:** February 2026  
-**Perspective:** Private Retail Investor (Austria / Flatex)  
+**Perspective:** Self-Directed Retail Investor (Austria / Flatex – Execution-Only)  
 **Objective:** Long-term capital growth with minimized drawdown exposure.
 
 ---
