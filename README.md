@@ -272,7 +272,7 @@ python satellite-strategy.py --current [TICKER1].XETRA,[TICKER2].XETRA,[TICKER3]
 
 - **EODHD (End-Of-Day Historical Data):** Financial API providing global historical market data. (https://eodhd.com/)
 
-- **Portfolio Visualizer:** Quantitative tools for historical backtesting and correlation analysis. Operated by SRL Global (Statistical Research Laboratory). Note: Correlation does not imply causation. (https://www.portfoliovisualizer.com/ | https://srlglobal.com/)
+- **Portfolio Visualizer:** Quantitative tools for historical backtesting and correlation analysis. Operated by SRL Global (<u>S</u>tatistical <u>R</u>esearch <u>L</u>aboratory). Note: Correlation does not imply causation. (https://www.portfoliovisualizer.com/ | https://srlglobal.com/)
 
 - **Portfolio Charts:** Asset allocation research and performance visualization. (https://portfoliocharts.com/)
 
