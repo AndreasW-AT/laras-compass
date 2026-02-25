@@ -69,9 +69,9 @@ Capital management and rebalancing are primarily executed via continuous monthly
    
    * *Trigger:* Disproportionate Satellite growth driven by persistent macro trends.
    * *Action:* Assess the technical integrity of the Top 3 Satellite constituents. Are at least 2 constituents maintaining a confirmed uptrend (Price > SMA200)?
-     * **Yes (Trend Intact + Satellite 25 - 32 %):** Maintain exposure with controlled capital allocation (70 % of new inflows allocate to the Core, 30 % to the Satellite).
-     * **Yes (Trend Intact + Satellite > 32 %):** Cease Satellite capital inflows entirely (100 % of new inflows allocate to the Core) to cap aggressive strategy concentration at roughly one-third of the total portfolio.
-     * **No (Trend Weakening):** Sell Satellite assets to revert to the 20 % baseline target. Realized net gains are subsequently injected into the Core.
+     * **Yes (Trend Intact + Satellite 25 - 32 %):** Soft Rebalancing (Dilution). The trend is allowed to run, but standard capital routing is suspended. 100 % of new capital inflows are allocated exclusively to the Core to dilute the Satellite's weight organically.
+     * **Yes (Trend Intact + Satellite > 32 %):** Hard Rebalancing (Take-Profit). The absolute architectural maximum is breached. To prevent Barbell-risk and secure the generated Alpha, excess Satellite assets are liquidated to revert exactly to the 20 % baseline target. Realized net gains are injected into the Core (compounding engine).
+     * **No (Trend Weakening):** Hard Rebalancing (Risk Mitigation). The macro regime is losing momentum. Sell Satellite assets to revert to the 20 % baseline target. Realized net gains are injected into the Core.
 
 2. **Lower Bound Scenario (Satellite < 15 %):**
    
