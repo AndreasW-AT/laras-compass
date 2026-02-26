@@ -11,9 +11,10 @@ from dotenv import load_dotenv
 # CONFIGURATION & STRATEGY PARAMETERS
 # ==============================================================================
 
-CASH_TICKER = "VCAA.XETRA"  
-CASH_NAME   = "CASH (Vanguard EUR Cash)"
-CASH_ISIN   = "IE000SOORXS0" 
+# Systemic placeholder for uninvested capital (Broker Settlement Account)
+SYS_CASH_TICKER = "SYS.LIQ"  
+SYS_CASH_NAME   = "Uninvested EUR Liquidity"
+SYS_CASH_ISIN   = "-"
 
 WEIGHTS = {'1M': 2, '3M': 5, '6M': 4, '10M': 3}
 SMA_WINDOW_DAYS = 200
@@ -24,7 +25,8 @@ BASE_URL = "https://eodhd.com/api/eod/"
 # ==============================================================================
 
 def fetch_history(ticker, api_key, max_retries=3):
-    start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
+    # API limit buffer: Requesting 370 days to mitigate holiday shifts at the edges.
+    start_date = (datetime.now() - timedelta(days=370)).strftime('%Y-%m-%d')
     url = f"{BASE_URL}{ticker}"
     params = {'api_token': api_key, 'from': start_date, 'fmt': 'json'}
     
@@ -67,7 +69,7 @@ def fetch_history(ticker, api_key, max_retries=3):
             return df
             
         except requests.exceptions.RequestException as e:
-            # Fix aus dem Fork: Bei Timeout/Network-Error die Retry-Schleife nutzen, nicht sofort abbrechen
+            # Utilize retry loop on timeout/network errors
             if attempt < max_retries - 1:
                 print(f"      [WARNING] Network issue for {ticker} ({e}). Retrying in 5s...")
                 time.sleep(5)
@@ -75,7 +77,6 @@ def fetch_history(ticker, api_key, max_retries=3):
                 print(f"      [ERROR] Network request failed definitively for {ticker} after {max_retries} attempts.")
                 break
         except Exception as e:
-            # Bei fundamentalen Datenverarbeitungsfehlern (Pandas etc.) sofort abbrechen
             print(f"      [ERROR] Data processing failed for {ticker}: {e}")
             break
             
@@ -88,7 +89,7 @@ def get_monthly_data(df):
     monthly_df.index = df.groupby('period')['close'].apply(lambda x: x.index[-1])
     return monthly_df
 
-def calculate_metrics(df_daily):
+def calculate_metrics(df_daily, ticker):
     if len(df_daily) < 200: 
         print(f"      -> Excluded: Insufficient historical data ({len(df_daily)} days < 200)")
         return None
@@ -105,7 +106,8 @@ def calculate_metrics(df_daily):
             if len(df_monthly) < 2: return None 
             df_monthly = df_monthly.iloc[:-1]
     
-    if len(df_monthly) < 11: 
+    # Hard termination condition of 10 to enable the API limit approximation.
+    if len(df_monthly) < 10: 
         print(f"      -> Excluded: Insufficient monthly historical data.")
         return None 
     
@@ -117,9 +119,15 @@ def calculate_metrics(df_daily):
         p_1m  = df_monthly.iloc[-2]['close']
         p_3m  = df_monthly.iloc[-4]['close']
         p_6m  = df_monthly.iloc[-7]['close']
-        p_10m = df_monthly.iloc[-11]['close']
     except IndexError:
         return None
+
+    # Workaround for the 365-day API limit (10-month proxy).
+    try:
+        p_10m = df_monthly.iloc[-11]['close']
+    except IndexError:
+        p_10m = df_daily.iloc[0]['close']
+        print(f"      -> [API Workaround] 11th month missing for {ticker}. Using oldest available daily price ({df_daily.index[0].strftime('%Y-%m-%d')}) as 10M proxy.")
 
     r_1m  = (p0_price / p_1m) - 1
     r_3m  = (p0_price / p_3m) - 1
@@ -152,7 +160,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--api-key', type=str, default=None)
-    parser.add_argument('--file', type=str, default='ticker.csv')
+    parser.add_argument('--file', type=str, default='satellite-universe.csv')
     parser.add_argument('--current', type=str, default='', help='Comma-separated list of currently held tickers')
     args = parser.parse_args()
 
@@ -162,11 +170,26 @@ def main():
 
     current_holdings = [t.strip() for t in args.current.split(',')] if args.current else []
 
+    # ==============================================================================
+    # UNIVERSE LOADING & FALLBACK LOGIC
+    # ==============================================================================
     if not os.path.exists(args.file):
-        print(f"[ERROR] Required input file '{args.file}' not found.")
-        return
+        print(f"[SYSTEM] Input file '{args.file}' not found.")
+        print("[SYSTEM] Initializing hardcoded demo universe (EODHD 'demo' key compatible).")
+        
+        demo_data = [
+            {'ticker': 'AAPL.US', 'name': 'Apple Inc.', 'isin': 'US0378331005', 'code': 'EQ_USA_SEC.INFT', 'constraint_group': 'EQ_USA1'},
+            {'ticker': 'TSLA.US', 'name': 'Tesla Motors', 'isin': 'US88160R1014', 'code': 'EQ_USA_SEC.COND', 'constraint_group': 'EQ_USA2'},
+            {'ticker': 'VTI.US', 'name': 'Vanguard Total Stock Market', 'isin': 'US9229087690', 'code': 'EQ_USA_REG', 'constraint_group': 'EQ_USA3'},
+            {'ticker': 'AMZN.US', 'name': 'Amazon.com', 'isin': 'US0231351067', 'code': 'EQ_USA_SEC.COND', 'constraint_group': 'EQ_USA4'},
+            {'ticker': 'BTC-USD.CC', 'name': 'Bitcoin-USD', 'isin': 'NaN', 'code': 'COM_GLB_THM.CRYP', 'constraint_group': 'COM_CRYPTO'},
+            {'ticker': 'EURUSD.FOREX', 'name': 'EUR vs Dollar', 'isin': 'NaN', 'code': 'CASH_EUR', 'constraint_group': 'FOREX'}
+        ]
+        tickers_df = pd.DataFrame(demo_data)
+    else:
+        tickers_df = pd.read_csv(args.file)
 
-    tickers_df = pd.read_csv(args.file)
+    # Standardize column naming and clean string inputs
     tickers_df.columns = [c.strip().lower() for c in tickers_df.columns]
     tickers_df['ticker'] = tickers_df['ticker'].astype(str).str.strip()
     
@@ -186,7 +209,7 @@ def main():
         df = fetch_history(ticker, api_key)
         
         if df is not None:
-            metrics = calculate_metrics(df)
+            metrics = calculate_metrics(df, ticker)
             if metrics:
                 results.append({
                     'Ticker': ticker,
@@ -204,16 +227,15 @@ def main():
                     'R6M': metrics['r6m'], 'R10M': metrics['r10m']
                 })
         
-        # Proactive rate limiting to respect EODHD 10 req/sec limit
         time.sleep(0.2)
 
     if not results: return
 
     df_results = pd.DataFrame(results).sort_values(by='Score', ascending=False)
     
-    # ---------------------------------------------------------
+    # -----------------------------------------------------------
     # APPLY RANK STABILITY RULE (Top 7 Buffer) & CONSTRAINT CHECK
-    # ---------------------------------------------------------
+    # -----------------------------------------------------------
     
     if 'constraint_group' not in df_results.columns:
         df_results['constraint_group'] = None
@@ -236,6 +258,7 @@ def main():
             match = buffer_df[(buffer_df['Ticker'] == ticker) & (buffer_df['Is_Uptrend'] == True)]
             if not match.empty:
                 row_dict = match.iloc[0].to_dict()
+                row_dict['Is_System_Cash'] = False
                 grp = row_dict.get('constraint_group')
                 grp_str = str(grp).strip() if pd.notna(grp) and str(grp).strip() else None
                 
@@ -265,50 +288,47 @@ def main():
             print(f"      -> Skipped {ticker} (Constraint limit reached for: {grp_str})")
             continue
             
-        add_to_allocation(row.to_dict())
+        row_dict = row.to_dict()
+        row_dict['Is_System_Cash'] = False
+        add_to_allocation(row_dict)
 
     final_allocation = sorted(final_allocation, key=lambda x: x['Score'], reverse=True)
     
     # ---------------------------------------------------------
-    # HANDLE DEFENSIVE MODE (Dynamic Cash Padding)
+    # PORTFOLIO INTEGRITY CHECK & SYSTEMIC CASH PADDING
     # ---------------------------------------------------------
-    
     valid_positions = len(final_allocation)
-    cash_slots_needed = 3 - valid_positions
+    empty_slots = 3 - valid_positions
     
-    if cash_slots_needed == 3:
-        print("\n[WARNING] Zero assets passed momentum constraints. Activating Full Defensive Mode (100 % Cash/Money Market).")
-    elif cash_slots_needed > 0:
-        print(f"\n[WARNING] Only {valid_positions} assets in confirmed uptrend. Padding remaining {cash_slots_needed} slot(s) with Cash/Money Market.")
+    if empty_slots > 0:
+        print(f"\n[WARNING] Strict momentum filters applied. Only {valid_positions} asset(s) qualified.")
+        print(f"[WARNING] Filling {empty_slots} portfolio slot(s) with explicit Uninvested Liquidity directive.")
         
     while len(final_allocation) < 3:
         final_allocation.append({
-            'Ticker': CASH_TICKER, 
-            'ISIN': CASH_ISIN,
-            'Name': CASH_NAME, 
+            'Ticker': SYS_CASH_TICKER, 
+            'ISIN': SYS_CASH_ISIN,
+            'Name': SYS_CASH_NAME, 
             'Score': 0.0,
-            'Is_Uptrend': True
+            'Is_Uptrend': True,
+            'Is_System_Cash': True
         })
 
     # ---------------------------------------------------------
-    # OUTPUT GENERATION
+    # OUTPUT GENERATION & FILE EXPORTS
     # ---------------------------------------------------------
-    print("\n" + "-"*60)
-    print(" ALGORITHMIC RANKING (Top 7 - For Rank Stability Rule)")
-    print("-" * 60)
-    
-    cols_to_show = ['Ticker', 'ISIN', 'Name', 'Score', 'Is_Uptrend']
-    print(buffer_df[cols_to_show].to_string(index=False, formatters={'Score': lambda x: f"{x:.2%}".replace('.', ',').replace('%', ' %')}))
+    timestamp = datetime.now().strftime('%Y-%m-%d')
+    filename_signals = f"satellite_signals_{timestamp}.csv"
+    filename_alloc_txt = f"target_allocation_{timestamp}.txt"
 
-    print("\n" + "-"*60)
-    print(" FINAL ALLOCATION DIRECTIVE (Post-Filter Assessment)")
-    print("-" * 60)
-    
+    # Prepare Display Table
     display_alloc = []
     for i, item in enumerate(final_allocation):
-        action = 'HOLD' if item['Ticker'] in current_holdings else 'BUY'
-        if item['Ticker'] == CASH_TICKER: action = 'FALLBACK'
-        
+        if item.get('Is_System_Cash', False):
+            action = 'PARK'
+        else:
+            action = 'HOLD' if item['Ticker'] in current_holdings else 'BUY'
+            
         display_alloc.append({
             'Pos': i+1, 
             'Action': action, 
@@ -316,24 +336,46 @@ def main():
             'ISIN': item.get('ISIN', ''),
             'Name': item['Name']
         })
-    
-    print(pd.DataFrame(display_alloc).to_string(index=False))
+    df_alloc = pd.DataFrame(display_alloc)
 
+    # Prepare Turnover Strings
+    current_holdings_unique = list(set(current_holdings))
+    new_tickers_investable = list(set([a['Ticker'] for a in final_allocation if not a.get('Is_System_Cash', False)]))
+    sells = [t for t in current_holdings_unique if t not in new_tickers_investable]
+    buys  = [t for t in new_tickers_investable if t not in current_holdings_unique]
+
+    # Visual Layout Constants
+    line = "-" * 60
+    
+    # 1. TXT EXPORT (Human-Readable)
+    with open(filename_alloc_txt, 'w', encoding='utf-8') as f:
+        f.write(f"\n{line}\n")
+        f.write(" FINAL ALLOCATION DIRECTIVE\n")
+        f.write(f"{line}\n")
+        f.write(df_alloc.to_string(index=False))
+        f.write("\n\nTURNOVER LOGIC:\n")
+        f.write(f"   Current Holdings:     {current_holdings_unique}\n")
+        f.write(f"   Target Allocation:    {new_tickers_investable}\n")
+        f.write(f"   Required Sales:       {sells}\n")
+        f.write(f"   Required Buys:        {buys}\n")
+        f.write(f"\n{line}\n")
+        f.write(f"Generated on: {timestamp}\n")
+
+    # 2. ANALYTICAL CSV EXPORT (Historical Data Only)
+    df_results.to_csv(filename_signals, index=False, sep=';', decimal=',')
+
+    # 3. TERMINAL OUTPUT (Mirroring the TXT file)
+    print(f"\n{line}\n FINAL ALLOCATION DIRECTIVE\n{line}")
+    print(df_alloc.to_string(index=False))
     if current_holdings:
-        new_tickers = [a['Ticker'] for a in final_allocation if a['Ticker'] != CASH_TICKER]
-        sells = [t for t in current_holdings if t not in new_tickers and t != CASH_TICKER]
-        buys  = [t for t in new_tickers if t not in current_holdings]
-        
         print("\nTURNOVER LOGIC:")
-        print(f"   Current Holdings:     {current_holdings}")
-        print(f"   Target Allocation:    {new_tickers}")
+        print(f"   Current Holdings:     {current_holdings_unique}")
+        print(f"   Target Allocation:    {new_tickers_investable}")
         print(f"   Required Sales:       {sells}")
         print(f"   Required Buys:        {buys}")
 
-    timestamp = datetime.now().strftime('%Y-%m-%d')
-    filename = f"satellite_signals_{timestamp}.csv"
-    df_results.to_csv(filename, index=False, sep=';', decimal=',')
-    print(f"\n[SYSTEM] Detailed analytical report exported to: {filename}")
+    print(f"\n[EXPORT] Analytical report:   {filename_signals}")
+    print(f"[EXPORT] Execution directive: {filename_alloc_txt}")
 
 if __name__ == "__main__":
     main()

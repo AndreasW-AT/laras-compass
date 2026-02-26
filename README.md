@@ -98,15 +98,20 @@ Capital management and rebalancing are primarily executed via continuous monthly
 ### Operational Mechanics & Accelerated Accumulation
 
 1. **Savings Plan Control (Standard):** Under normal market conditions (price > SMA200d/SMA10M), monthly capital inflows are systematically routed into whichever of the three Core positions is most underweight relative to its percentage target.
-2. **Annual Rebalancing:** The baseline allocation (70/20/10) is reviewed annually. The primary mechanism for maintaining target weights is the strategic routing of continuous capital inflows. Active rebalancing (liquidating assets) is strictly executed only if positional deviations exceed **5 percentage points** AND the mathematical benefit of realigning the portfolio demonstrably outweighs the resultant fiscal drag (capital gains tax) and transactional friction. This mandate ensures the protocol scales efficiently and remains mathematically viable regardless of the absolute portfolio magnitude.
+
+2. **Annual Rebalancing & Asymmetric Tolerance:** The baseline allocation (70/20/10) is reviewed annually. To protect the tax shield, the primary mechanism for maintaining target weights is strictly the strategic routing of continuous capital inflows (Soft Rebalancing). Active rebalancing (liquidating assets) is subject to an **Asymmetric Tolerance Band** to account for the Accelerated Accumulation Protocol:
+   
+   - **Downward Deviations (Equity < 65 %):** Resolved purely via targeted capital inflows. No active selling of Bonds/Gold.
+   
+   - **Upward Deviations (Equity > 75 %):** If the equity overweight is a direct mathematical result of a preceding Accelerated Accumulation phase and subsequent market recovery, *no assets are liquidated*. The excess equity position is allowed to run, leveraging the lowered cost-basis. The standard 70/20/10 allocation is gradually restored solely by routing 100 % of future standard inflows into the structurally underweight Bond and Gold positions. Active liquidation is strictly prohibited unless an asset fundamentally violates the Core investment thesis.
 
 **Accelerated Accumulation Protocol (The Anti-Cyclical Tilt):**
 
-* *Applicability:* Restricted to the core equity allocation (e.g., `VWCE`).
-* *Trigger Mechanism:* The monthly closing price (Ultimo) of the equity asset falls below its 10-month Simple Moving Average (SMA10M).
-* *Action (Cost-Basis Reduction):* The standard proportional distribution of inflows is suspended. 100 % of all designated Core capital inflows are aggressively routed into the equity allocation to maximize share accumulation at depressed valuations.
-* *Redeployment:* Standard balancing of inflows across all Core assets (Equities, Bonds, Gold) resumes as soon as the monthly closing price recovers above the SMA10M.
-* This buy-and-hold protocol functions as the systematic counter-weight to the Satellite’s momentum logic. While the Satellite exits during price declines, the Core utilizes phases below the SMA10M for aggressive cost-basis reduction. This "bet on global recovery" ensures that the portfolio accumulates maximum shares at depressed valuations, which historically serves as the primary driver for outsized returns during the subsequent recovery phase.
+* **Applicability:** Restricted to the core equity allocation (e.g., `VWCE`).
+* **Trigger Mechanism (Hysteresis & Confirmation):** To prevent operational whipsawing in sideways markets, the protocol requires definitive confirmation. The monthly closing price (Ultimo) of the equity asset must close strictly below its 10-month Simple Moving Average (SMA10M) for two consecutive months. Only upon the second confirmed negative monthly close are standard inflows suspended and 100 % of designated Core capital inflows aggressively routed into the equity allocation to maximize share accumulation at depressed valuations. Conversely, standard distribution across all Core assets resumes immediately upon the first monthly close above the SMA10M to secure the accumulated position.
+* **Action (Cost-Basis Reduction):** The standard proportional distribution of inflows is suspended. 100 % of all designated Core capital inflows are aggressively routed into the equity allocation to maximize share accumulation at depressed valuations.
+* **Redeployment:** Standard balancing of inflows across all Core assets (Equities, Bonds, Gold) resumes as soon as the monthly closing price recovers above the SMA10M.
+* This buy-and-hold protocol functions as the **systematic counter-weight to the Satellite’s momentum logic**. While the Satellite exits during price declines, the Core utilizes phases below the SMA10M for aggressive cost-basis reduction. This "bet on global recovery" ensures that the portfolio accumulates maximum shares at depressed valuations, which historically serves as the primary driver for outsized returns during the subsequent recovery phase.
 
 ---
 
@@ -117,7 +122,7 @@ Capital management and rebalancing are primarily executed via continuous monthly
 
 * **Methodology:** A composite model expanding on Mebane T. Faber's *Global Tactical Asset Allocation* and Gary Antonacci's *Dual Momentum*. Unlike standard implementations, this strategy applies an adaptive 2-5-4-3 weighting framework. This mathematical engine builds upon the foundational momentum anomaly research by Narasimhan Jegadeesh and Sheridan Titman, incorporates the cross-asset momentum principles of AQR Capital Management (Cliff Asness), and aligns with the core concepts of *Adaptive Asset Allocation (AAA)* formulated by Adam Butler, Michael Philbrick, and Rodrigo Gordillo.
 
-* **Algorithm Constraints:** Relies strictly on End-Of-Month (Ultimo) pricing data. The portfolio allocates evenly to the Top 3 assets selected from a diversified, low-correlation universe (`ticker.csv`). 
+* **Algorithm Constraints:** Relies strictly on End-Of-Month (Ultimo) pricing data. The portfolio allocates evenly to the Top 3 assets selected from a diversified, low-correlation universe (`satellite-universe.csv`). 
 
 ### The Universe Selection ("Algorithmic Alpha vs. Beta Asset")
 
@@ -208,7 +213,7 @@ The working directory must maintain a flat structure:
 Project-Directory/
 ├── satellite-strategy.py    (Execution Script)
 ├── .env                     (Configuration/API Key)
-└── ticker.csv               (Investment Universe Data)
+└── satellite-universe.csv   (Investment Universe Data)
 ```
 
 ### Configuration
@@ -221,7 +226,7 @@ Plaintext
 EODHD_API_KEY=YOUR_API_KEY_STRING
 ```
 
-The `ticker.csv` defines the permissible investment universe according to the strict criteria outlined in section 5.
+The `satellite-universe` defines the permissible investment universe according to the strict criteria outlined in section 5.
 
 Code-Snippet
 
