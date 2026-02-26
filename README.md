@@ -5,7 +5,7 @@
 ---
 
 **Status:** February 2026  
-**Perspective:** Private Retail Investor (Austria / Flatex)  
+**Perspective:** Self-Directed Private Retail Investor (Austria / Execution-Only-Broker Flatex.at )  
 **Objective:** Long-term capital growth with minimized drawdown exposure.
 
 ---
@@ -146,7 +146,7 @@ Score = \frac{2 \cdot R_{1M} + 5 \cdot R_{3M} + 4 \cdot R_{6M} + 3 \cdot R_{10M}
 $$
 
 * **$R_{1M}$ (Weight: 2):** Functions as a minimal tie-breaker. The weight is intentionally suppressed to filter out short-term statistical noise and prevent performance erosion caused by mean reversion. 
-* **$R_{3M}$ (Weight: 5) & $R_{6M}$ (Weight: 4):** The core anchors of the strategy. Research by Narasimhan Jegadeesh & Sheridan Titman (the pioneers of momentum research) and AQR Capital (Cliff Asness) provides clear evidence: The strongest, most robust momentum signal across asset classes, least vulnerable to mean reversion, resides precisely within the 3 to 6-month window.
+* **$R_{3M}$ (Weight: 5) & $R_{6M}$ (Weight: 4):** The core anchors of the strategy. Research by Narasimhan Jegadeesh & Sheridan Titman and AQR Capital (Cliff Asness) provides robust empirical evidence suggesting that the most persistent momentum anomaly across asset classes — and the one least vulnerable to mean reversion — is statistically concentrated within the 3 to 6-month window.
 * **$R_{10M}$ (Weight: 3):** Long-term trend baseline. The 10-month parameter (equivalent to 200 days) is intentionally selected to align the strategy's maximum historical lookback with the data retrieval limits of the EODHD API Free Tier, ensuring technical operational feasibility.
 
 **Macro-Inertia Calibration and Signal-to-Noise Integrity:** The specific mathematical weighting ($2 \cdot R_{1M} + 5 \cdot R_{3M} + 4 \cdot R_{6M} + 3 \cdot R_{10M}$) is explicitly calibrated to capture the structural inertia of broad macroeconomic sectors and primary asset classes. It is inherently unsuitable for the higher volatility profiles of single equities, narrow thematic ETFs, or isolated smart-beta factors. Applying this specific smoothing model to highly volatile micro-assets would degrade the signal-to-noise ratio, resulting in severe signal lag and delayed execution (whipsawing). Therefore, the strict adherence to the "Lumping vs. Slicing" doctrine is a fundamental mathematical prerequisite for the algorithm's validity, not merely a stylistic preference.
