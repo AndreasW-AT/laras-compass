@@ -25,8 +25,9 @@ BASE_URL = "https://eodhd.com/api/eod/"
 # ==============================================================================
 
 def fetch_history(ticker, api_key, max_retries=3):
-    # API limit buffer: Requesting 370 days to mitigate holiday shifts at the edges.
-    start_date = (datetime.now() - timedelta(days=370)).strftime('%Y-%m-%d')
+    # "Free Package": Data Range = Past year
+    # 365 calendar days of the yield ~252 trading days, fully sufficient for the SMA200 calculation.
+    start_date = (datetime.now() - timedelta(days=365)).strftime('%Y-%m-%d')
     url = f"{BASE_URL}{ticker}"
     params = {'api_token': api_key, 'from': start_date, 'fmt': 'json'}
     
@@ -101,8 +102,21 @@ def calculate_metrics(df_daily, ticker):
     _, last_day_of_month = calendar.monthrange(now.year, now.month)
     
     if (last_available_date.month == now.month) and (last_available_date.year == now.year):
-        cutoff_day = last_day_of_month - 2
-        if now.day < cutoff_day:
+        # 1. Determine the first and last calendar day of the current month
+        first_day = now.replace(day=1)
+        last_day = now.replace(day=calendar.monthrange(now.year, now.month)[1])
+        
+        # 2. Generate a sequence of all business days (Monday to Friday) for the current month
+        business_days = pd.bdate_range(start=first_day.date(), end=last_day.date())
+        
+        # 3. Define the third-to-last business day as the start of the execution window
+        if len(business_days) >= 3:
+            execution_window_start = business_days[-3].date()
+        else:
+            execution_window_start = business_days[0].date() # Fallback
+            
+        # 4. If the current date strictly precedes this execution window, discard the ongoing month
+        if now.date() < execution_window_start:
             if len(df_monthly) < 2: return None 
             df_monthly = df_monthly.iloc[:-1]
     
