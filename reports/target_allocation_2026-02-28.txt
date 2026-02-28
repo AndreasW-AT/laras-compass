@@ -53,7 +53,6 @@ Initiating analysis for 27 assets...
    ... processing data for: XDWM.XETRA
    ... processing data for: SXRC.MU
    ... processing data for: CBUX.XETRA
-   ... processing data for: 4GLD.XETRA
    ... processing data for: VGEM.XETRA
 
 ------------------------------------------------------------
