@@ -1,0 +1,71 @@
+
+------------------------------------------------------------
+ FINAL ALLOCATION DIRECTIVE
+------------------------------------------------------------
+ Pos Action     Ticker         ISIN                                    Name
+   1    BUY  G2X.XETRA IE00BQQP9F84                      VanEck Gold Miners
+   2    BUY VGEK.XETRA IE00BK5BQZ41 Vanguard FTSE Dev Asia Pacific ex Japan
+   3    BUY XDWM.XETRA IE00BM67HS53          Xtrackers MSCI World Materials
+
+TURNOVER LOGIC:
+   Current Holdings:     []
+   Target Allocation:    ['XDWM.XETRA', 'G2X.XETRA', 'VGEK.XETRA']
+   Required Sales:       []
+   Required Buys:        ['XDWM.XETRA', 'G2X.XETRA', 'VGEK.XETRA']
+
+------------------------------------------------------------
+Generated on: 2026-02-28
+
+
+Terminal-Output:
+
+python .\satellite-strategy.py
+
+============================================================
+ SATELLITE STRATEGY ALGORITHM
+============================================================
+
+Initiating analysis for 27 assets...
+
+   ... processing data for: VCAA.XETRA
+      -> Excluded: Insufficient historical data (54 days < 200)
+   ... processing data for: IQQ6.XETRA
+   ... processing data for: XDW0.XETRA
+   ... processing data for: XDWI.XETRA
+   ... processing data for: DFEN.XETRA
+   ... processing data for: G2X.XETRA
+   ... processing data for: WMOT.XETRA
+   ... processing data for: VGEK.XETRA
+   ... processing data for: VWCG.XETRA
+   ... processing data for: VFEA.XETRA
+   ... processing data for: VJPA.XETRA
+   ... processing data for: VNRA.XETRA
+   ... processing data for: WTIC.XETRA
+   ... processing data for: BNXG.XETRA
+   ... processing data for: MTH.PA
+   ... processing data for: XDWF.XETRA
+   ... processing data for: XDWH.XETRA
+   ... processing data for: XDWT.XETRA
+   ... processing data for: XDWU.XETRA
+   ... processing data for: XDWS.XETRA
+   ... processing data for: XDWC.XETRA
+   ... processing data for: XWTS.XETRA
+   ... processing data for: XDWM.XETRA
+   ... processing data for: SXRC.MU
+   ... processing data for: CBUX.XETRA
+   ... processing data for: 4GLD.XETRA
+   ... processing data for: VGEM.XETRA
+
+------------------------------------------------------------
+ FINAL ALLOCATION DIRECTIVE
+------------------------------------------------------------
+ Pos Action     Ticker         ISIN                                    Name
+   1    BUY  G2X.XETRA IE00BQQP9F84                      VanEck Gold Miners
+   2    BUY VGEK.XETRA IE00BK5BQZ41 Vanguard FTSE Dev Asia Pacific ex Japan
+   3    BUY XDWM.XETRA IE00BM67HS53          Xtrackers MSCI World Materials
+
+[EXPORT] Analytical report:   satellite_signals_2026-02-28.csv
+[EXPORT] Execution directive: target_allocation_2026-02-28.txt
+
+Notes by myself:
+• VCAA was my mistake. Sure, it's a new ETF. I know that. Doesn't matter in that case because moneymarket is atm just a few %/year.
